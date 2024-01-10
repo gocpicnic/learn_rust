@@ -1,5 +1,11 @@
 # Rust学习笔记 #
 - [Rust学习笔记](#rust学习笔记)
+  - [self与Self](#self与self)
+  - [模块](#模块)
+    - [绝对路径](#绝对路径)
+  - [宏](#宏)
+    - [声明式宏](#声明式宏)
+    - [过程宏](#过程宏)
   - [语句和表达式](#语句和表达式)
     - [语句](#语句)
       - [声明语句](#声明语句)
@@ -14,6 +20,81 @@
     - [命名法则](#命名法则)
 
 ---
+## self与Self ##
+self表示调用方法的对象，作为类方法的第一个参数，类似于C++中的this。
+
+Self表示调用者的类型。
+```Rust
+impl Clone for MyType {
+    // 可以直接写具体类型
+    fn clone(&self) -> MyType;
+    // 也可以用Self代替
+    fn clone(&self) -> Self;
+}
+
+impl MySuperLongType {
+    // 用Self写起来更短
+    fn new(a: u32) -> Self { ... }
+}
+```
+
+Rust中函数参数均需要注明类型，但是self则不需要，这是一个语法糖（syntactic sugar），以下示例中两两等价：
+```Rust
+impl MyType{
+    fn doit(self){}
+    fn doit(self: Self){}
+
+    fn doit(&self) {}
+    fn doit(self: &Self){}
+
+    fn doit(&mut self) {}
+    fn doit(self: &mut Self) {}
+}
+```
+## 模块 ##
+### 绝对路径 ###
+路径有两种形式：
+绝对路径（absolute path）是以 crate 根（root）开头的全路径；对于外部 crate 的代码，是以 crate 名开头的绝对路径，对于当前 crate 的代码，则以字面值 crate 开头。
+相对路径（relative path）从当前模块开始，以 self、super 或当前模块的标识符开头。
+当前项目的crate值为当前src的路径。
+## 宏 ##
+Rust宏很强大，
+### 声明式宏 ###
+println!后面加！都是声明式宏，目前理解让代码看起来更简单，当然宏的实现者把复杂性给隐藏了
+### 过程宏 ###
+```Rust
+#[derive(Debug)]
+struct Point {
+    x: i32,
+    y: i32,
+}
+
+let origin = Point { x: 0, y: 0 };
+
+assert_eq!(format!("The origin is: {origin:?}"), "The origin is: Point { x: 0, y: 0 }");
+```
+#[derive(Debug)]是Rust的派生式宏的用法，给构体Point派生一个Debug方法，相当于下面代码。
+```Rust
+use std::fmt;
+
+struct Point {
+    x: i32,
+    y: i32,
+}
+
+impl fmt::Debug for Point {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("Point")
+         .field("x", &self.x)
+         .field("y", &self.y)
+         .finish()
+    }
+}
+
+let origin = Point { x: 0, y: 0 };
+
+assert_eq!(format!("The origin is: {origin:?}"), "The origin is: Point { x: 0, y: 0 }");
+```
 
 ## 语句和表达式 ##
 ### 语句 ###
